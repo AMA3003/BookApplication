@@ -14,7 +14,7 @@ class BooksController {
         def authorName = bookData.author.name
         def author = Author.findByName(authorName)
         if (!author) {
-            render status: 400, text: "Author with Name '$authorName' not found"
+            render status: HttpStatus.NOT_FOUND.code, text: "Author with Name '$authorName' not found"
             return
         }
         def book = new Books(
@@ -26,9 +26,9 @@ class BooksController {
         )
         book.author = author
         if (book.save(flush: true)) {
-            render status: 201, text: 'Book created successfully'
+            render status: HttpStatus.NOT_FOUND.code, text: 'Book created successfully'
         } else {
-            render status: 400, text: 'Failed to create book'
+            render status: HttpStatus.BAD_REQUEST.code, text: 'Failed to create book'
         }
     }
 
@@ -39,7 +39,7 @@ class BooksController {
             render books as JSON
         } catch (Exception e) {
             log.error("Error fetching books", e)
-            render(status: 400, text: "Error while fetching Books: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error while fetching Books: ${e.message}")
         }
     }
 
@@ -50,7 +50,7 @@ class BooksController {
             render book as JSON
         } catch (Exception e) {
             log.error("Error fetching book: $title")
-            render(status: 400, text: "Error while fetching Book: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error while fetching Book: ${e.message}")
         }
     }
 
@@ -59,16 +59,16 @@ class BooksController {
         def title = json.title
         def bookToUpdate = Books.findByTitle(title)
         if (!bookToUpdate) {
-            render(status: 404, text: "Book with title '$title' not found")
+            render(status: HttpStatus.NOT_FOUND.code, text: "Book with title '$title' not found")
             return
         }
         try {
             def updatedBook = bookService.update(title, json.yearPublished as Integer, json.genre)
             log.info("Updating book: ${updatedBook.title}")
-            render(status: 201, text: "Book Updated successfully: ${updatedBook.title}")
+            render(status: HttpStatus.CREATED.code, text: "Book Updated successfully: ${updatedBook.title}")
         } catch (Exception e) {
             log.error("Error updating the book")
-            render(status: 400, text: e.message)
+            render(status: HttpStatus.BAD_REQUEST.code, text: e.message)
         }
     }
 
@@ -78,13 +78,13 @@ class BooksController {
             if (book) {
                 def deletedBook = bookService.delete(book)
                 log.info("Book with title $title successfully deleted.")
-                render(status: 201, text: "Book Deleted successfully: ${deletedBook.title}")
+                render(status: HttpStatus.OK.code, text: "Book Deleted successfully: ${deletedBook.title}")
             } else {
                 throw new NotFoundException("Book with title $title not found.")
             }
         } catch (Exception e) {
             log.error("An error occurred: ${e.message}")
-            render(status: 400, text: "Error while Deleting the book: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error while Deleting the book: ${e.message}")
         }
     }
 }
