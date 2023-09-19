@@ -14,17 +14,17 @@ class AuthorController {
         def existingAuthor = Author.findByName(json.name)
         if (existingAuthor) {
             log.error("Author with the same name already exists: ${json.name}")
-            render(status: 400, text: "Author with the same name already exists: ${json.name}")
+            render(status: HttpStatus.FORBIDDEN.code, text: "Author with the same name already exists: ${json.name}")
             return
         }
         def newAuthor= new Author(name: json.name,emailId: json.emailId)
         try {
             def savedAuthor = authorService.save(newAuthor)
             log.info("Author saved successfully: ${json.name}")
-            render(status: 201, text: "Author saved successfully: ${json.name}")
+            render(status: HttpStatus.CREATED.code, text: "Author saved successfully: ${json.name}")
         } catch (Exception e) {
             log.error("Error while saving author: ${json.name}", e)
-            render(status: 400, text: "Error while saving author: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error while saving author: ${e.message}")
         }
     }
 
@@ -36,14 +36,14 @@ class AuthorController {
             if(authorToUpdate) {
                 def updatedAuthor = authorService.update(name, json.emailId)
                 log.info("Updating Author: ${name}")
-                render(status: 201, text: "Author Updated successfully: ${name}")
+                render(status: HttpStatus.OK.code, text: "Author Updated successfully: ${name}")
             }
             else {
                 throw new NotFoundException("Author with name $name not found.")
             }
         } catch (Exception e) {
             log.error("Error updating the author")
-            render(status: 400, text: "Error updating the author: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error updating the author: ${e.message}")
         }
     }
 
@@ -55,7 +55,7 @@ class AuthorController {
             render authorNames as JSON
         } catch (Exception e) {
             log.error("Error while fetching Authors", e)
-            render(status: 400, text: "Error while fetching Authors: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error while fetching Authors: ${e.message}")
         }
     }
 
@@ -66,13 +66,13 @@ class AuthorController {
             if (author) {
                 def deletedAuthor = authorService.delete(author)
                 log.info("Author with name $name successfully deleted.")
-                render(status: 201, text: "Author Deleted successfully: ${deletedAuthor.name}")
+                render(status: HttpStatus.OK.code, text: "Author Deleted successfully: ${deletedAuthor.name}")
             } else {
                 throw new NotFoundException("Author with name $name not found.")
             }
         } catch (Exception e) {
             log.error("An error occurred: ${e.message}")
-            render(status: 400, text: "Error while Deleting the author: ${e.message}")
+            render(status: HttpStatus.BAD_REQUEST.code, text: "Error while Deleting the author: ${e.message}")
         }
     }
 
@@ -92,16 +92,16 @@ class AuthorController {
             author.addToBooks(book)
         }
         if (author.save(flush: true)) {
-            render status: 201, text: 'Author with books created successfully'
+            render status: HttpStatus.CREATED.code, text: 'Author with books created successfully'
         } else {
-            render status: 400, text: 'Bad Request'
+            render status: HttpStatus.BAD_REQUEST.code, text: 'Error in Saving Author with Books'
         }
     }
 
     def booksByAuthor(String name) {
         def author = Author.findByName(name)
         if (!author) {
-            render status: 404, text: "Author not found"
+            render status: HttpStatus.NOT_FOUND.code, text: "Author not found"
             return
         }
         def books = author.books
